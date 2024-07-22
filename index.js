@@ -236,7 +236,17 @@ function createJSON(filePath) {
 	let final={}
 	for ( var obj in row){
 		if(!(escapeList.includes(obj))){
-			final[`${obj}_${row[obj]}`]='/'
+			if(row[obj].includes(',')){
+        let datasplitted = row[obj].split(',');
+        datasplitted.forEach(ds=>{
+          console.log(`${obj}_${ds.trim()}`)
+          final[`${obj}_${ds.trim()}`]='/'
+        })
+      }else{
+
+       final[`${obj}_${row[obj]}`]='/'
+      }
+
 		}else{
 			final[`${obj}`]=row[obj]
 		}
@@ -268,7 +278,7 @@ function createJSON(filePath) {
            
           // Save or use the base64 string as needed
           if(k==list_to_generate.length-1 && pic==list_to_generate[k].files.length-1){
-     
+            await new Promise(resolve => setTimeout(resolve, 5000));
             await createPDF();
           }
           } catch (error) {
