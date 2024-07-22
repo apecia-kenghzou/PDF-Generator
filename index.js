@@ -86,7 +86,7 @@ function convertDateFormat(dateStr) {
  * @param {number} rotateDegrees - The degrees to rotate the image if it is horizontal.
  * @returns {Promise<string>} - A promise that resolves to the base64 string of the processed image.
  */
-async function rotateBase64ImageIfHorizontal(base64Image, rotateDegrees) {
+async function rotateBase64ImageIfHorizontal(base64Image,filepath, rotateDegrees) {
   try {
     const imageBuffer = Buffer.from(base64Image, 'base64');
     const image = sharp(imageBuffer);
@@ -101,9 +101,35 @@ async function rotateBase64ImageIfHorizontal(base64Image, rotateDegrees) {
     // Return the original base64 image if it is not horizontal
     return base64Image;
   } catch (error) {
-    console.error('Error processing image:', error);
-    throw error;
+	  
+    console.error('Error processing image:', filepath);
+	console.error('replacing image with blank white');
+	 return base64Image;
   }
+}
+function getImageType(base64String) {
+    // Decode the Base64 string
+    const binaryString = atob(base64String);
+    const firstBytes = binaryString.slice(0, 8); // We only need the first few bytes
+
+    // Convert the first bytes to a hexadecimal representation
+    const hexBytes = [];
+    for (let i = 0; i < firstBytes.length; i++) {
+        hexBytes.push(firstBytes.charCodeAt(i).toString(16).padStart(2, '0'));
+    }
+    const hexString = hexBytes.join(' ');
+
+    // Check for JPEG magic number
+    if (hexString.startsWith('ff d8 ff')) {
+        return 'data:image/jpeg;base64,';
+    }
+
+    // Check for PNG magic number
+    if (hexString.startsWith('89 50 4e 47 0d 0a 1a 0a')) {
+        return 'data:image/png;base64,';
+    }
+
+    return 'Unknown';
 }
  function convertValuesToString(obj) {
     const result = {};
@@ -124,7 +150,7 @@ async function convertImageToBase64(filepath) {
   try {
     await fsp.access(filepath); // Check if the file exists
     const contents = await fsp.readFile(filepath, { encoding: 'base64' });
-    let rotated =  rotateBase64ImageIfHorizontal(contents,90)
+    let rotated =  rotateBase64ImageIfHorizontal(contents,filepath,90)
     return rotated;
 
   } catch (err) {
@@ -298,6 +324,7 @@ function createJSON(filePath) {
 
 async function createPDF() {
   console.log('creating pdf')
+  console.log(list_to_generate)
   for(var a = 0 ; a<list_to_generate.length;a++){
     try{
       const stringObj = convertValuesToString(list_to_generate[a]);
@@ -308,7 +335,7 @@ async function createPDF() {
         plugins,
       });
       const outputFolder = path.join(__dirname, 'pdfs');
-        const outputFileName = `UPS PRE-INSTALLATION SERVER ROOM INSPECTION_${ list_to_generate[a].Location}_${convertDateFormat( list_to_generate[a].Date)}.pdf`;
+        const outputFileName = `UPS PRE-INSTALLATION SERVER ROOM INSPECTION_${ list_to_generate[a].Location}_${convertDateFormat( list_to_generate[a].Date)}_${a}.pdf`;
   
       // Ensure the output folder exists
         if (!fs.existsSync(outputFolder)) {
