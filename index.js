@@ -358,6 +358,6 @@ async function createPDF() {
 const csvFilePath = path.join(__dirname, 'UPS PRE-INSTALLATION SERVER ROOM INSPECTION (Responses) - Form Responses 1.csv');
 
 // Start processing the CSV file
-processCsv(csvFilePath);
-//createJSON(csvFilePath);
+//processCsv(csvFilePath);
+createJSON(csvFilePath);
 
